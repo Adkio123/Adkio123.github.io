@@ -2,45 +2,29 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1,user-scalable=no">
 <title>测试版 AI 1.0</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{
+html,body{
     background:#05050a;
     color:#f0f4ff;
-    padding:12px;
-    font-family:"Segoe UI",Roboto,system-ui,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-    overflow-x:hidden;
-    min-height:100vh;
+    font-family:system-ui,sans-serif;
+    overflow:hidden;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
 }
-/* 星星置顶，允许点击穿透 */
-#stars{
-    position:fixed;
-    top:0;left:0;
-    width:100vw;height:100vh;
-    z-index:9998;
-    pointer-events:none;
-}
-/* 雪花置顶最高层级，不会拦截鼠标点击 */
-#snow{
-    position:fixed;
-    top:0;left:0;
-    width:100vw;height:100vh;
-    z-index:9999;
-    pointer-events:none;
-}
+#stars{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
+#snow{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
 #chatBox{
-    position:relative;
-    z-index:1;
-    height:65vh;
+    flex:1;
     overflow-y:auto;
     border:1px solid #2a2a44;
     border-radius:12px;
     padding:12px;
-    margin-bottom:12px;
+    margin:12px;
     background:rgba(12,12,24,0.65);
-    backdrop-filter:blur(4px);
 }
 .user{
     background:#244088;
@@ -51,7 +35,6 @@ body{
     max-width:82%;
     margin-left:auto;
     font-size:15px;
-    line-height:1.5;
 }
 .ai{
     background:#1f2238;
@@ -62,11 +45,10 @@ body{
     max-width:82%;
     margin-right:auto;
     font-size:15px;
-    line-height:1.5;
 }
+#previewArea{padding:0 12px 6px 12px;}
 #bar{
-    position:relative;
-    z-index:1;
+    padding:0 12px 12px 12px;
     display:flex;
     gap:8px;
     flex-wrap:wrap;
@@ -79,120 +61,145 @@ body{
     border-radius:10px;
     padding:11px 14px;
     font-size:15px;
-    min-width:140px;
+    min-width:100px;
     outline:none;
-}
-#inp:focus{
-    border-color:#5078dd;
 }
 button{
     background:#3869dd;
     color:#fff;
     border:none;
     border-radius:10px;
-    padding:9px 16px;
-    font-size:15px;
-    white-space:nowrap;
+    padding:9px 12px;
+    font-size:14px;
     cursor:pointer;
 }
-#chatBox::-webkit-scrollbar{width:6px;}
-#chatBox::-webkit-scrollbar-thumb{background:#384066;border-radius:3px;}
-
-@keyframes twinkle{
-    0%{opacity:0.2;}
-    100%{opacity:0.8;}
-}
-@keyframes snowfall{
-    0%{transform:translateY(-10px);opacity:0;}
-    10%{opacity:1;}
-    100%{transform:translateY(100vh);opacity:0;}
-}
+.preview-img{max-width:140px;border-radius:8px;margin:4px 0}
+@keyframes twinkle {0%{opacity:0.2}100%{opacity:0.8}}
+@keyframes snowfall {0%{transform:translateY(-10px);opacity:0}10%{opacity:1}100%{transform:translateY(100vh);opacity:0}}
 </style>
 </head>
 <body>
 <div id="stars"></div>
 <div id="snow"></div>
-
 <div id="chatBox"></div>
+<input type="file" id="imgFileInput" accept="image/*" capture="camera" style="display:none">
+<input type="file" id="uploadFileInput" accept="image/*" style="display:none">
+<div id="previewArea"></div>
 <div id="bar">
-    <input id="inp" placeholder="输入消息...">
-    <button onclick="send()">发送</button>
+<input id="inp" placeholder="输入消息...">
+<button id="btnImg">📷拍照</button>
+<button id="btnUpload">🖼上传图片</button>
+<button onclick="_0x88f2a7()">发送</button>
 </div>
 
 <script>
-const API_URL = "https://speed.toter.me/v1/chat/completions";
-const MODEL = "claude-sonnet-4-5";
-const SYSTEM_PROMPT = "你是我的专属AI，回答简洁友好，只处理文本对话。";
+const _0xrealapi="https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const _0xmodelid="glm-4.6v-flash";
+const _0xsystemtext="你是我的专属AI，回答简短精炼。没有收到图片的时候就只做文字对话。";
+const _0xkeystr="Bearer 1e6115fa1007495ea97c0ca849672b53.NeDHwVQEDmysVcHf";
+let selectedImageBase64=null;
 
-// 创建星星
-const starsDom = document.getElementById("stars");
-for(let i=0;i<120;i++){
-    const s = document.createElement("div");
-    const size = Math.random()*2+1;
-    s.style.position = "absolute";
-    s.style.background = "#fff";
-    s.style.borderRadius = "50%";
-    s.style.width = size+"px";
-    s.style.height = size+"px";
-    s.style.left = Math.random()*100+"%";
-    s.style.top = Math.random()*100+"%";
-    s.style.opacity = Math.random()*0.7+0.2;
-    s.style.animation = `twinkle ${Math.random()*3+2}s infinite ease-in-out alternate`;
-    starsDom.appendChild(s);
+const _0xstarwrap=document.getElementById("stars");
+for(let _0xi=0;_0xi<120;_0xi++){
+    const _0xs=document.createElement("div");
+    const _0xsz=Math.random()*2+1;
+    _0xs.style.position="absolute";
+    _0xs.style.background="#fff";
+    _0xs.style.borderRadius="50%";
+    _0xs.style.width=_0xsz+"px";
+    _0xs.style.height=_0xsz+"px";
+    _0xs.style.left=Math.random()*100+"%";
+    _0xs.style.top=Math.random()*100+"%";
+    _0xs.style.animation=`twinkle ${Math.random()*3+2}s infinite ease-in-out alternate`;
+    _0xstarwrap.appendChild(_0xs);
 }
 
-// 创建雪花
-const snowDom = document.getElementById("snow");
-function createSnow(){
-    const flake = document.createElement("div");
-    const size = Math.random()*4+2;
-    flake.style.position = "absolute";
-    flake.style.background = "#ffffff";
-    flake.style.borderRadius = "50%";
-    flake.style.width = size+"px";
-    flake.style.height = size+"px";
-    flake.style.left = Math.random()*100+"%";
-    flake.style.animation = `snowfall ${Math.random()*8+6}s linear infinite`;
-    snowDom.appendChild(flake);
-    setTimeout(()=>flake.remove(),14000);
+const _0xsnowwrap=document.getElementById("snow");
+function _0xsnowgen(){
+    const _0xflk=document.createElement("div");
+    const _0xfsz=Math.random()*4+2;
+    _0xflk.style.position="absolute";
+    _0xflk.style.background="#ffffff";
+    _0xflk.style.borderRadius="50%";
+    _0xflk.style.width=_0xfsz+"px";
+    _0xflk.style.height=_0xfsz+"px";
+    _0xflk.style.left=Math.random()*100+"%";
+    _0xflk.style.animation=`snowfall ${Math.random()*8+6}s linear infinite`;
+    _0xsnowwrap.appendChild(_0xflk);
+    setTimeout(()=>_0xflk.remove(),14000);
 }
-setInterval(createSnow,120);
+setInterval(_0xsnowgen,120);
 
-async function send(){
-    const text = inp.value.trim();
-    if(!text) return;
-    chatBox.innerHTML += `<div class="user">${text}</div>`;
-    inp.value = "";
-    chatBox.scrollTop = chatBox.scrollHeight;
+document.getElementById("btnImg").onclick=function(){
+    document.getElementById("imgFileInput").click();
+};
 
-    const messages = [
-        {role:"system", content:SYSTEM_PROMPT},
-        {role:"user", content:text}
+document.getElementById("btnUpload").onclick=function(){
+    document.getElementById("uploadFileInput").click();
+};
+
+function handleFile(file){
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=function(ev){
+        selectedImageBase64=ev.target.result;
+        document.getElementById("previewArea").innerHTML=`<img class="preview-img" src="${selectedImageBase64}"><br><span style="color:#aaa">已选择图片，输入文字后点发送</span>`;
+    };
+    reader.readAsDataURL(file);
+}
+
+document.getElementById("imgFileInput").onchange=function(e){
+    handleFile(e.target.files[0]);
+};
+
+document.getElementById("uploadFileInput").onchange=function(e){
+    handleFile(e.target.files[0]);
+};
+
+async function _0x88f2a7(){
+    const _0xtxt=inp.value.trim();
+    if(!_0xtxt && !selectedImageBase64)return;
+    let userContent;
+    if(selectedImageBase64){
+        userContent=[
+            {"type":"text","text":_0xtxt||"请描述这张图片"},
+            {"type":"image_url","image_url":{"url":selectedImageBase64}}
+        ];
+        chatBox.innerHTML+=`<div class="user">${_0xtxt||"[图片提问]"}<br><img class="preview-img" src="${selectedImageBase64}"></div>`;
+    }else{
+        userContent=_0xtxt;
+        chatBox.innerHTML+=`<div class="user">${_0xtxt}</div>`;
+    }
+    inp.value="";
+    document.getElementById("previewArea").innerHTML="";
+    chatBox.scrollTop=chatBox.scrollHeight;
+    const _0xmsg=[
+        {role:"system",content:_0xsystemtext},
+        {role:"user",content:userContent}
     ];
-
     try{
-        const res = await fetch(API_URL,{
+        const _0xresp=await fetch(_0xrealapi,{
             method:"POST",
             headers:{
-                "Authorization":"Bearer sk-WvYQUPHX2qbDNBMi7ZlzUQ4pmbnkqinDarSrjmtl31JJTB17",
+                "Authorization":_0xkeystr,
                 "Content-Type":"application/json"
             },
             body:JSON.stringify({
-                model:MODEL,
-                messages:messages,
+                model:_0xmodelid,
+                messages:_0xmsg,
                 temperature:0.7
             })
         });
-        const data = await res.json();
-        const ans = data.choices[0].message.content;
-        chatBox.innerHTML += `<div class="ai">${ans}</div>`;
-    }catch(err){
-        chatBox.innerHTML += `<div class="ai">❌请求失败：${err.message}</div>`;
+        const _0xdata=await _0xresp.json();
+        const _0xout=_0xdata.choices[0].message.content;
+        chatBox.innerHTML+=`<div class="ai">${_0xout}</div>`;
+    }catch(_0xerr){
+        chatBox.innerHTML+=`<div class="ai">❌请求失败：${_0xerr.message}</div>`;
     }
-    chatBox.scrollTop = chatBox.scrollHeight;
+    chatBox.scrollTop=chatBox.scrollHeight;
+    selectedImageBase64=null;
 }
-
-inp.addEventListener("keydown",e=>{if(e.key==="Enter") send()})
+inp.addEventListener("keydown",e=>{if(e.key==="Enter")_0x88f2a7()})
 </script>
 </body>
 </html>
