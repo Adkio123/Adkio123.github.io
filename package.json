@@ -1,0 +1,12 @@
+{
+  "name": "email-verification-api",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.18.2",
+    "nodemailer": "^6.9.9",
+    "cors": "^2.8.5"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
