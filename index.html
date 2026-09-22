@@ -80,10 +80,15 @@
             color:#888899;
             word-break:break-all;
         }
+        .gobang-page{display:none;text-align:center;padding:20px}
+        .gobang-page h2{margin-bottom:12px}
+        canvas{background:#deb887;border:3px solid #6b4423;border-radius:6px}
+        .back-btn{margin-top:16px;padding:8px 16px;background:#555;color:white;border-radius:8px;border:none}
     </style>
 </head>
 <body>
-<div class="box">
+
+<div id="loginPage" class="box">
     <h1>卡密激活验证</h1>
     <input id="cardInput" placeholder="输入卡密">
     <div class="btns">
@@ -95,11 +100,20 @@
     <div id="debug"></div>
 </div>
 
+<div id="gobangPage" class="gobang-page">
+    <h2 id="levelTitle"></h2>
+    <canvas id="chessBoard" width="450" height="450"></canvas>
+    <br>
+    <button class="back-btn" onclick="backLogin()">返回卡密页面</button>
+</div>
+
 <script>
 const API_ACTIVATE = "https://km.fly-fly.fun/api/v1/activate";
 const API_QUERY = "https://km.fly-fly.fun/api/v1/verify";
 const API_KEY = "km_lix7dutpdksvo5995r9i36nloc7vp2wn";
 const APP_ID = "fa3a17c1-02e3-4c9c-8042-73f05a89f7fe";
+
+let gameLevel = "";
 
 function getDeviceId(){
     let id = localStorage.getItem("kamism_device_id");
@@ -144,13 +158,20 @@ async function activateCard(){
         const raw = await res.text();
         setDebug("原始返回："+raw);
         const data = JSON.parse(raw);
-        if(data.code===200){
-            setMsg(`✅激活成功\n剩余天数：${data.data.days}天`,"success");
+        if(data.success === true){
+            setMsg(`✅激活成功！${data.message}\n剩余天数：${data.data.remaining_days}天`,"success");
+            const days = Number(data.data.remaining_days);
+            if(days >= 99){
+                gameLevel = "high";
+            }else{
+                gameLevel = "low";
+            }
+            setTimeout(()=>{ openGobang(); },1200);
         }else{
-            setMsg(`❌失败：${data.msg}`,"error");
+            setMsg(`❌失败：${data.message}`,"error");
         }
     }catch(e){
-        setMsg("❌跨域错误！本地打开不可用，必须部署到网页托管平台","error");
+        setMsg("❌请求出错","error");
         setDebug("错误："+e.toString());
     }
 }
@@ -174,15 +195,166 @@ async function queryCard(){
         const raw = await res.text();
         setDebug("原始返回："+raw);
         const data = JSON.parse(raw);
-        if(data.code===200){
-            setMsg(`✅查询成功\n剩余天数：${data.data.days}天`,"success");
+        if(data.success === true){
+            setMsg(`✅查询成功\n剩余天数：${data.data.remaining_days}天`,"success");
         }else{
-            setMsg(`❌失败：${data.msg}`,"error");
+            setMsg(`❌失败：${data.message}`,"error");
         }
     }catch(e){
-        setMsg("❌跨域错误！本地打开不可用，必须部署网页托管平台","error");
-        setDebug("错误："+e.toString());
+        setMsg("❌请求出错","error");
     }
+}
+
+function openGobang(){
+    document.getElementById("loginPage").style.display="none";
+    document.getElementById("gobangPage").style.display="block";
+    if(gameLevel==="high"){
+        document.getElementById("levelTitle").innerText = "🔴高阶五子棋｜AI强力进攻防守";
+    }else{
+        document.getElementById("levelTitle").innerText = "🟡低阶五子棋｜AI懂得堵棋";
+    }
+    initGobang(gameLevel);
+}
+
+function backLogin(){
+    document.getElementById("gobangPage").style.display="none";
+    document.getElementById("loginPage").style.display="block";
+}
+
+function initGobang(level){
+    const canvas = document.getElementById("chessBoard");
+    const ctx = canvas.getContext("2d");
+    const size = 30;
+    const count = 15;
+    let board = Array(count).fill().map(()=>Array(count).fill(0));
+    let isBlack = true;
+
+    function drawBoard(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(let i=0;i<count;i++){
+            ctx.beginPath();
+            ctx.moveTo(size/2+i*size,size/2);
+            ctx.lineTo(size/2+i*size,size*(count-0.5));
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(size/2,size/2+i*size);
+            ctx.lineTo(size*(count-0.5),size/2+i*size);
+            ctx.stroke();
+        }
+        for(let y=0;y<count;y++){
+            for(let x=0;x<count;x++){
+                if(board[y][x]!==0){
+                    ctx.beginPath();
+                    ctx.arc(size/2+x*size,size/2+y*size,12,0,Math.PI*2);
+                    ctx.fillStyle = board[y][x]===1?"#111":"#fff";
+                    ctx.fill();
+                }
+            }
+        }
+    }
+
+    function checkWin(x,y,color){
+        const dirs=[[1,0],[0,1],[1,1],[1,-1]];
+        for(let [dx,dy] of dirs){
+            let cnt=1;
+            for(let i=1;i<5;i++){
+                let nx=x+dx*i, ny=y+dy*i;
+                if(nx<0||ny<0||nx>=count||ny>=count||board[ny][nx]!==color) break;
+                cnt++;
+            }
+            for(let i=1;i<5;i++){
+                let nx=x-dx*i, ny=y-dy*i;
+                if(nx<0||ny<0||nx>=count||ny>=count||board[ny][nx]!==color) break;
+                cnt++;
+            }
+            if(cnt>=5) return true;
+        }
+        return false;
+    }
+
+    //统计连续棋子，用于识别活二、活三、冲四
+    function countLine(x,y,dx,dy,color){
+        let same=0,empty=0;
+        for(let i=1;i<=4;i++){
+            let nx=x+dx*i,ny=y+dy*i;
+            if(nx<0||ny<0||nx>=count||ny>=count) break;
+            if(board[ny][nx]===color) same++;
+            else if(board[ny][nx]===0) {empty++;break;}
+            else break;
+        }
+        for(let i=1;i<=4;i++){
+            let nx=x-dx*i,ny=y-dy*i;
+            if(nx<0||ny<0||nx>=count||ny>=count) break;
+            if(board[ny][nx]===color) same++;
+            else if(board[ny][nx]===0) {empty++;break;}
+            else break;
+        }
+        return {same,empty};
+    }
+
+    //AI打分：低阶会堵对手，高阶进攻防守拉满
+    function calcScore(x,y,lv){
+        let ai=2,human=1;
+        let score=0;
+        const dirs=[[1,0],[0,1],[1,1],[1,-1]];
+
+        //AI自己的棋
+        for(let [dx,dy] of dirs){
+            let s = countLine(x,y,dx,dy,ai);
+            if(s.same===4) score += lv==="high"?10000:5000; //冲四
+            if(s.same===3&&s.empty>=1) score += lv==="high"?1200:450; //活三
+            if(s.same===2&&s.empty>=2) score += lv==="high"?180:80; //活二
+        }
+        //重点：对玩家（人类）进行防守堵棋，低阶也会执行
+        for(let [dx,dy] of dirs){
+            let s = countLine(x,y,dx,dy,human);
+            if(s.same===4) score += lv==="high"?9500:4800; //对手冲四必须堵
+            if(s.same===3&&s.empty>=1) score += lv==="high"?1100:420; //对手活三要堵
+            if(s.same===2&&s.empty>=2) score += lv==="high"?160:70; //对手活二低阶也会适度堵
+        }
+        return score;
+    }
+
+    function aiPlay(){
+        let best=null;
+        let maxScore=-99999;
+        for(let y=0;y<count;y++){
+            for(let x=0;x<count;x++){
+                if(board[y][x]!==0) continue;
+                let sc = calcScore(x,y,level);
+                if(sc>maxScore){
+                    maxScore=sc;
+                    best={x,y};
+                }
+            }
+        }
+        if(best){
+            board[best.y][best.x]=2;
+            drawBoard();
+            if(checkWin(best.x,best.y,2)){
+                alert("AI获胜！");
+            }
+            isBlack=true;
+        }
+    }
+
+    canvas.onclick = function(e){
+        const rect = canvas.getBoundingClientRect();
+        let px = e.clientX - rect.left;
+        let py = e.clientY - rect.top;
+        let x = Math.round((px-size/2)/size);
+        let y = Math.round((py-size/2)/size);
+        if(x<0||y<0||x>=count||y>=count||board[y][x]!==0||!isBlack) return;
+        board[y][x]=1;
+        drawBoard();
+        if(checkWin(x,y,1)){
+            alert("你胜利！");
+            return;
+        }
+        isBlack=false;
+        setTimeout(aiPlay,250);
+    }
+    drawBoard();
 }
 </script>
 </body>
