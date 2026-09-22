@@ -7,7 +7,7 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
         body{
-            background:radial-gradient(circle at top,#252233,#0f0f16);
+            background:#181824;
             min-height:100vh;
             display:flex;
             align-items:center;
@@ -17,8 +17,8 @@
         }
         .box{
             width:440px;
-            background:#1b1b27;
-            border:1px solid #35354a;
+            background:#222234;
+            border:1px solid #383850;
             border-radius:20px;
             padding:32px;
             box-shadow:0 10px 35px rgba(0,0,0,0.35);
@@ -32,8 +32,8 @@
         input{
             width:100%;
             padding:14px 16px;
-            background:#272738;
-            border:1px solid #44445c;
+            background:#2c2c42;
+            border:1px solid #464664;
             border-radius:10px;
             color:#fff;
             font-size:15px;
@@ -56,12 +56,12 @@
         }
         .btn1{background:#7c5cff;color:#fff}
         .btn1:hover{background:#6645e2}
-        .btn2{background:#2f2f42;color:#e2e2f0}
-        .btn2:hover{background:#3c3c52}
+        .btn2{background:#35354b;color:#e2e2f0}
+        .btn2:hover{background:#42425c}
         .devinfo{
-            background:#222231;
+            background:#2c2c42;
             padding:14px;
-            border-radius:12px;
+            border-radius:10px;
             font-size:14px;
             margin-bottom:16px;
         }
@@ -108,6 +108,7 @@
 </div>
 
 <script>
+// ========== 已全部填好你的信息 ==========
 const API_ACTIVATE = "https://km.fly-fly.fun/api/v1/activate";
 const API_QUERY = "https://km.fly-fly.fun/api/v1/verify";
 const API_KEY = "km_lix7dutpdksvo5995r9i36nloc7vp2wn";
@@ -272,7 +273,6 @@ function initGobang(level){
         return false;
     }
 
-    //统计连续棋子，用于识别活二、活三、冲四
     function countLine(x,y,dx,dy,color){
         let same=0,empty=0;
         for(let i=1;i<=4;i++){
@@ -292,25 +292,21 @@ function initGobang(level){
         return {same,empty};
     }
 
-    //AI打分：低阶会堵对手，高阶进攻防守拉满
     function calcScore(x,y,lv){
         let ai=2,human=1;
         let score=0;
         const dirs=[[1,0],[0,1],[1,1],[1,-1]];
-
-        //AI自己的棋
         for(let [dx,dy] of dirs){
             let s = countLine(x,y,dx,dy,ai);
-            if(s.same===4) score += lv==="high"?10000:5000; //冲四
-            if(s.same===3&&s.empty>=1) score += lv==="high"?1200:450; //活三
-            if(s.same===2&&s.empty>=2) score += lv==="high"?180:80; //活二
+            if(s.same===4) score += lv==="high"?10000:5000;
+            if(s.same===3&&s.empty>=1) score += lv==="high"?1200:450;
+            if(s.same===2&&s.empty>=2) score += lv==="high"?180:80;
         }
-        //重点：对玩家（人类）进行防守堵棋，低阶也会执行
         for(let [dx,dy] of dirs){
             let s = countLine(x,y,dx,dy,human);
-            if(s.same===4) score += lv==="high"?9500:4800; //对手冲四必须堵
-            if(s.same===3&&s.empty>=1) score += lv==="high"?1100:420; //对手活三要堵
-            if(s.same===2&&s.empty>=2) score += lv==="high"?160:70; //对手活二低阶也会适度堵
+            if(s.same===4) score += lv==="high"?9500:4800;
+            if(s.same===3&&s.empty>=1) score += lv==="high"?1100:420;
+            if(s.same===2&&s.empty>=2) score += lv==="high"?160:70;
         }
         return score;
     }
@@ -348,7 +344,7 @@ function initGobang(level){
         board[y][x]=1;
         drawBoard();
         if(checkWin(x,y,1)){
-            alert("你胜利！");
+            alert("你获胜！");
             return;
         }
         isBlack=false;
