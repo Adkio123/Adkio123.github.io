@@ -1,356 +1,436 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KamiSM卡密激活</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
-        body{
-            background:#181824;
-            min-height:100vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            padding:16px;
-            color:#fff;
-        }
-        .box{
-            width:440px;
-            background:#222234;
-            border:1px solid #383850;
-            border-radius:20px;
-            padding:32px;
-            box-shadow:0 10px 35px rgba(0,0,0,0.35);
-        }
-        h1{
-            text-align:center;
-            font-size:23px;
-            color:#c7b7ff;
-            margin-bottom:24px;
-        }
-        input{
-            width:100%;
-            padding:14px 16px;
-            background:#2c2c42;
-            border:1px solid #464664;
-            border-radius:10px;
-            color:#fff;
-            font-size:15px;
-            outline:none;
-            margin-bottom:16px;
-        }
-        input:focus{border-color:#8b6dff}
-        .btns{
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:10px;
-            margin-bottom:18px;
-        }
-        button{
-            padding:13px;
-            border:none;
-            border-radius:10px;
-            font-size:15px;
-            cursor:pointer;
-        }
-        .btn1{background:#7c5cff;color:#fff}
-        .btn1:hover{background:#6645e2}
-        .btn2{background:#35354b;color:#e2e2f0}
-        .btn2:hover{background:#42425c}
-        .devinfo{
-            background:#2c2c42;
-            padding:14px;
-            border-radius:10px;
-            font-size:14px;
-            margin-bottom:16px;
-        }
-        #msg{
-            text-align:center;
-            min-height:65px;
-            line-height:1.8;
-            font-size:14.5px;
-        }
-        .success{color:#76f09c}
-        .error{color:#ff7b7b}
-        .warn{color:#ffcf66}
-        #debug{
-            margin-top:10px;
-            font-size:12px;
-            color:#888899;
-            word-break:break-all;
-        }
-        .gobang-page{display:none;text-align:center;padding:20px}
-        .gobang-page h2{margin-bottom:12px}
-        canvas{background:#deb887;border:3px solid #6b4423;border-radius:6px}
-        .back-btn{margin-top:16px;padding:8px 16px;background:#555;color:white;border-radius:8px;border:none}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡密激活 - 高阶五子棋</title>
+<style>
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.35), transparent 40%),
+    radial-gradient(circle at 80% 30%, rgba(236, 72, 153, 0.25), transparent 45%),
+    radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.35), transparent 40%),
+    linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  color: #fff;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 玻璃拟态通用面板 */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  padding: 24px;
+  max-width: 440px;
+  margin: 0 auto 16px;
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: #e2e8f0;
+}
+
+input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  transition: 0.25s;
+}
+
+input:focus {
+  border-color: rgba(96, 165, 250, 0.6);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+
+button {
+  border: none;
+  border-radius: 14px;
+  padding: 13px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+  color: #fff;
+}
+
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.45);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.55);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#msg {
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-line;
+  color: #cbd5e1;
+}
+
+/* 游戏区域 */
+#gameWrap {
+  display: none;
+}
+
+canvas {
+  width: 100%;
+  height: auto;
+  background: rgba(222, 184, 135, 0.85);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.game-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  justify-content: center;
+}
+
+/* 咨询按钮：默认显示，进入游戏隐藏 */
+.consult-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ec4899, #f43f5e);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(236, 72, 153, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  z-index: 999;
+  animation: pulse-glow 2s infinite;
+}
+
+.consult-btn:hover {
+  transform: scale(1.08);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 10px 30px rgba(236, 72, 153, 0.55);
+  }
+  50% {
+    box-shadow: 0 10px 40px rgba(236, 72, 153, 0.85);
+  }
+}
+</style>
 </head>
 <body>
 
-<div id="loginPage" class="box">
-    <h1>卡密激活验证</h1>
-    <input id="cardInput" placeholder="输入卡密">
-    <div class="btns">
-        <button class="btn1" onclick="activateCard()">激活卡密</button>
-        <button class="btn2" onclick="queryCard()">查询卡密</button>
+<div class="glass-panel">
+  <h2>卡密激活</h2>
+  <input id="keyInput" placeholder="请输入卡密">
+  <button class="btn-primary" onclick="activate()">激活</button>
+  <div id="msg"></div>
+
+  <div id="gameWrap">
+    <h3>高阶五子棋</h3>
+    <canvas id="board" width="450" height="450"></canvas>
+    <div class="game-buttons">
+      <button class="btn-ghost" onclick="restartGame()">重新开局</button>
     </div>
-    <div class="devinfo">本机设备ID：<span id="devIdText"></span></div>
-    <div id="msg"></div>
-    <div id="debug"></div>
+  </div>
 </div>
 
-<div id="gobangPage" class="gobang-page">
-    <h2 id="levelTitle"></h2>
-    <canvas id="chessBoard" width="450" height="450"></canvas>
-    <br>
-    <button class="back-btn" onclick="backLogin()">返回卡密页面</button>
-</div>
+<button class="consult-btn" id="consultBtn" onclick="consult()">咨询</button>
 
 <script>
-// ========== 已全部填好你的信息 ==========
-const API_ACTIVATE = "https://km.fly-fly.fun/api/v1/activate";
-const API_QUERY = "https://km.fly-fly.fun/api/v1/verify";
-const API_KEY = "km_lix7dutpdksvo5995r9i36nloc7vp2wn";
 const APP_ID = "fa3a17c1-02e3-4c9c-8042-73f05a89f7fe";
+const API_URL = "https://api.kamism.com/v1/activate";
 
-let gameLevel = "";
+let canvas, ctx;
+let size = 15;
+let cell = 30;
+let board = [];
+let human = 1;
+let ai = 2;
 
-function getDeviceId(){
-    let id = localStorage.getItem("kamism_device_id");
-    if(!id){
-        id = "dev_" + Math.random().toString(36).slice(2,14);
-        localStorage.setItem("kamism_device_id",id);
+async function activate() {
+  const key = document.getElementById("keyInput").value.trim();
+  const msgBox = document.getElementById("msg");
+  const gameWrap = document.getElementById("gameWrap");
+  const consultBtn = document.getElementById("consultBtn");
+
+  if (!key) {
+    msgBox.textContent = "请输入卡密";
+    return;
+  }
+
+  msgBox.textContent = "正在激活...";
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ app_id: APP_ID, key: key })
+    });
+
+    const data = await res.json();
+
+    if (data.code === 200) {
+      const remainDay = data.data.days;
+      msgBox.textContent = "激活成功！剩余到期天数：" + remainDay + "天\n已进入高阶五子棋";
+      gameWrap.style.display = "block";
+      consultBtn.style.display = "none"; // 进入五子棋页面，隐藏咨询按钮
+      initGame();
+    } else {
+      msgBox.textContent = "激活失败：" + data.msg;
     }
-    return id;
+  } catch (err) {
+    msgBox.textContent = "网络请求出错，请检查网络或使用本地打开。";
+  }
 }
 
-window.onload = ()=>{
-    document.getElementById("devIdText").innerText = getDeviceId();
+function consult() {
+  alert("咨询功能：请联系客服获取帮助。");
 }
 
-function setMsg(text,type){
-    const m = document.getElementById("msg");
-    m.innerText = text;
-    m.className = type||"";
-}
-function setDebug(t){
-    document.getElementById("debug").innerText = t;
-}
-
-async function activateCard(){
-    const card = document.getElementById("cardInput").value.trim();
-    const dev = getDeviceId();
-    setDebug("");
-    if(!card) return setMsg("请输入卡密","error");
-    setMsg("正在激活…","warn");
-    try{
-        const res = await fetch(API_ACTIVATE,{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-                api_key:API_KEY,
-                app_id:APP_ID,
-                card_code:card,
-                device_id:dev,
-                device_name:"网页浏览器客户端"
-            })
-        })
-        const raw = await res.text();
-        setDebug("原始返回："+raw);
-        const data = JSON.parse(raw);
-        if(data.success === true){
-            setMsg(`✅激活成功！${data.message}\n剩余天数：${data.data.remaining_days}天`,"success");
-            const days = Number(data.data.remaining_days);
-            if(days >= 99){
-                gameLevel = "high";
-            }else{
-                gameLevel = "low";
-            }
-            setTimeout(()=>{ openGobang(); },1200);
-        }else{
-            setMsg(`❌失败：${data.message}`,"error");
-        }
-    }catch(e){
-        setMsg("❌请求出错","error");
-        setDebug("错误："+e.toString());
-    }
+function initGame() {
+  canvas = document.getElementById("board");
+  ctx = canvas.getContext("2d");
+  board = Array(size).fill().map(() => Array(size).fill(0));
+  drawBoard();
+  aiFirstMove();
+  canvas.onclick = clickBoard;
 }
 
-async function queryCard(){
-    const card = document.getElementById("cardInput").value.trim();
-    setDebug("");
-    if(!card) return setMsg("请输入卡密","error");
-    setMsg("正在查询…","warn");
-    try{
-        const res = await fetch(API_QUERY,{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-                api_key:API_KEY,
-                app_id:APP_ID,
-                card_code:card,
-                device_id:getDeviceId()
-            })
-        })
-        const raw = await res.text();
-        setDebug("原始返回："+raw);
-        const data = JSON.parse(raw);
-        if(data.success === true){
-            setMsg(`✅查询成功\n剩余天数：${data.data.remaining_days}天`,"success");
-        }else{
-            setMsg(`❌失败：${data.message}`,"error");
-        }
-    }catch(e){
-        setMsg("❌请求出错","error");
-    }
+function aiFirstMove() {
+  let cx = Math.floor(size / 2);
+  let rx = cx + Math.floor(Math.random() * 5) - 2;
+  let ry = cx + Math.floor(Math.random() * 5) - 2;
+  rx = Math.max(2, Math.min(size - 3, rx));
+  ry = Math.max(2, Math.min(size - 3, ry));
+  board[ry][rx] = ai;
+  drawBoard();
 }
 
-function openGobang(){
-    document.getElementById("loginPage").style.display="none";
-    document.getElementById("gobangPage").style.display="block";
-    if(gameLevel==="high"){
-        document.getElementById("levelTitle").innerText = "🔴高阶五子棋｜AI强力进攻防守";
-    }else{
-        document.getElementById("levelTitle").innerText = "🟡低阶五子棋｜AI懂得堵棋";
+function drawBoard() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.75)";
+  for (let i = 0; i < size; i++) {
+    ctx.beginPath();
+    ctx.moveTo(cell / 2 + i * cell, cell / 2);
+    ctx.lineTo(cell / 2 + i * cell, cell * size - cell / 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(cell / 2, cell / 2 + i * cell);
+    ctx.lineTo(cell * size - cell / 2, cell / 2 + i * cell);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      let p = board[y][x];
+      if (!p) continue;
+
+      ctx.beginPath();
+      ctx.arc(cell / 2 + x * cell, cell / 2 + y * cell, 12, 0, Math.PI * 2);
+
+      if (p === 1) {
+        ctx.fillStyle = "#0b1220";
+      } else {
+        ctx.fillStyle = "#f8fafc";
+      }
+
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
+      ctx.stroke();
     }
-    initGobang(gameLevel);
+  }
 }
 
-function backLogin(){
-    document.getElementById("gobangPage").style.display="none";
-    document.getElementById("loginPage").style.display="block";
+function clickBoard(e) {
+  let rect = canvas.getBoundingClientRect();
+  let scaleX = canvas.width / rect.width;
+  let scaleY = canvas.height / rect.height;
+
+  let x = Math.round((e.clientX - rect.left - cell / 2) * scaleX / cell);
+  let y = Math.round((e.clientY - rect.top - cell / 2) * scaleY / cell);
+
+  if (x < 0 || x >= size || y < 0 || y >= size || board[y][x]) return;
+
+  board[y][x] = human;
+  drawBoard();
+
+  if (checkWin(human)) {
+    alert("你赢了！");
+    return;
+  }
+
+  aiTurn();
 }
 
-function initGobang(level){
-    const canvas = document.getElementById("chessBoard");
-    const ctx = canvas.getContext("2d");
-    const size = 30;
-    const count = 15;
-    let board = Array(count).fill().map(()=>Array(count).fill(0));
-    let isBlack = true;
+function aiTurn() {
+  let best = null;
+  let maxScore = -99999;
 
-    function drawBoard(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        for(let i=0;i<count;i++){
-            ctx.beginPath();
-            ctx.moveTo(size/2+i*size,size/2);
-            ctx.lineTo(size/2+i*size,size*(count-0.5));
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(size/2,size/2+i*size);
-            ctx.lineTo(size*(count-0.5),size/2+i*size);
-            ctx.stroke();
-        }
-        for(let y=0;y<count;y++){
-            for(let x=0;x<count;x++){
-                if(board[y][x]!==0){
-                    ctx.beginPath();
-                    ctx.arc(size/2+x*size,size/2+y*size,12,0,Math.PI*2);
-                    ctx.fillStyle = board[y][x]===1?"#111":"#fff";
-                    ctx.fill();
-                }
-            }
-        }
-    }
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if (board[y][x]) continue;
 
-    function checkWin(x,y,color){
-        const dirs=[[1,0],[0,1],[1,1],[1,-1]];
-        for(let [dx,dy] of dirs){
-            let cnt=1;
-            for(let i=1;i<5;i++){
-                let nx=x+dx*i, ny=y+dy*i;
-                if(nx<0||ny<0||nx>=count||ny>=count||board[ny][nx]!==color) break;
-                cnt++;
-            }
-            for(let i=1;i<5;i++){
-                let nx=x-dx*i, ny=y-dy*i;
-                if(nx<0||ny<0||nx>=count||ny>=count||board[ny][nx]!==color) break;
-                cnt++;
-            }
-            if(cnt>=5) return true;
-        }
-        return false;
+      let s = evalPoint(x, y);
+      if (s > maxScore) {
+        maxScore = s;
+        best = { x, y };
+      }
     }
+  }
 
-    function countLine(x,y,dx,dy,color){
-        let same=0,empty=0;
-        for(let i=1;i<=4;i++){
-            let nx=x+dx*i,ny=y+dy*i;
-            if(nx<0||ny<0||nx>=count||ny>=count) break;
-            if(board[ny][nx]===color) same++;
-            else if(board[ny][nx]===0) {empty++;break;}
-            else break;
-        }
-        for(let i=1;i<=4;i++){
-            let nx=x-dx*i,ny=y-dy*i;
-            if(nx<0||ny<0||nx>=count||ny>=count) break;
-            if(board[ny][nx]===color) same++;
-            else if(board[ny][nx]===0) {empty++;break;}
-            else break;
-        }
-        return {same,empty};
-    }
-
-    function calcScore(x,y,lv){
-        let ai=2,human=1;
-        let score=0;
-        const dirs=[[1,0],[0,1],[1,1],[1,-1]];
-        for(let [dx,dy] of dirs){
-            let s = countLine(x,y,dx,dy,ai);
-            if(s.same===4) score += lv==="high"?10000:5000;
-            if(s.same===3&&s.empty>=1) score += lv==="high"?1200:450;
-            if(s.same===2&&s.empty>=2) score += lv==="high"?180:80;
-        }
-        for(let [dx,dy] of dirs){
-            let s = countLine(x,y,dx,dy,human);
-            if(s.same===4) score += lv==="high"?9500:4800;
-            if(s.same===3&&s.empty>=1) score += lv==="high"?1100:420;
-            if(s.same===2&&s.empty>=2) score += lv==="high"?160:70;
-        }
-        return score;
-    }
-
-    function aiPlay(){
-        let best=null;
-        let maxScore=-99999;
-        for(let y=0;y<count;y++){
-            for(let x=0;x<count;x++){
-                if(board[y][x]!==0) continue;
-                let sc = calcScore(x,y,level);
-                if(sc>maxScore){
-                    maxScore=sc;
-                    best={x,y};
-                }
-            }
-        }
-        if(best){
-            board[best.y][best.x]=2;
-            drawBoard();
-            if(checkWin(best.x,best.y,2)){
-                alert("AI获胜！");
-            }
-            isBlack=true;
-        }
-    }
-
-    canvas.onclick = function(e){
-        const rect = canvas.getBoundingClientRect();
-        let px = e.clientX - rect.left;
-        let py = e.clientY - rect.top;
-        let x = Math.round((px-size/2)/size);
-        let y = Math.round((py-size/2)/size);
-        if(x<0||y<0||x>=count||y>=count||board[y][x]!==0||!isBlack) return;
-        board[y][x]=1;
-        drawBoard();
-        if(checkWin(x,y,1)){
-            alert("你获胜！");
-            return;
-        }
-        isBlack=false;
-        setTimeout(aiPlay,250);
-    }
+  if (best) {
+    board[best.y][best.x] = ai;
     drawBoard();
+
+    if (checkWin(ai)) {
+      alert("AI获胜！");
+    }
+  }
+}
+
+function evalPoint(x, y) {
+  board[y][x] = ai;
+  let aiSc = calcAll(x, y, ai);
+
+  board[y][x] = human;
+  let huSc = calcAll(x, y, human);
+
+  board[y][x] = 0;
+
+  return aiSc * 1.4 + huSc;
+}
+
+function calcAll(px, py, player) {
+  let dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+  let total = 0;
+
+  for (let [dx, dy] of dirs) {
+    total += countLine(px, py, dx, dy, player);
+  }
+
+  return total;
+}
+
+function countLine(px, py, dx, dy, pl) {
+  let cnt = 1;
+  let r = 0;
+  let x = px + dx;
+  let y = py + dy;
+
+  while (x >= 0 && x < size && y >= 0 && y < size && board[y][x] === pl) {
+    cnt++;
+    r++;
+    x += dx;
+    y += dy;
+  }
+
+  let l = 0;
+  x = px - dx;
+  y = py - dy;
+
+  while (x >= 0 && x < size && y >= 0 && y < size && board[y][x] === pl) {
+    cnt++;
+    l++;
+    x -= dx;
+    y -= dy;
+  }
+
+  let leftOpen = (px - dx * l >= 0 && py - dy * l >= 0 && px - dx * l < size && py - dy * l < size)
+    ? board[py - dy * l][px - dx * l] === 0
+    : false;
+
+  let rightOpen = (px + dx * r >= 0 && py + dy * r >= 0 && px + dx * r < size && py + dy * r < size)
+    ? board[py + dy * r][px + dx * r] === 0
+    : false;
+
+  let open = 0;
+  if (leftOpen) open++;
+  if (rightOpen) open++;
+
+  if (cnt >= 5) return 100000;
+  if (cnt === 4 && open >= 1) return 12000;
+  if (cnt === 3 && open >= 2) return 2200;
+  if (cnt === 3 && open === 1) return 750;
+  if (cnt === 2 && open >= 2) return 260;
+  if (cnt === 2 && open === 1) return 70;
+  return 8;
+}
+
+function checkWin(p) {
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if (board[y][x] !== p) continue;
+      let d = [[1, 0], [0, 1], [1, 1], [1, -1]];
+      for (let [dx, dy] of d) {
+        let c = 1;
+        let nx = x + dx, ny = y + dy;
+        while (nx >= 0 && nx < size && ny >= 0 && ny < size && board[ny][nx] === p) {
+          c++;
+          nx += dx;
+          ny += dy;
+        }
+        if (c >= 5) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function restartGame() {
+  initGame();
 }
 </script>
 </body>
