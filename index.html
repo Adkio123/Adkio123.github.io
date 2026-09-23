@@ -25,7 +25,6 @@ body {
   overflow-x: hidden;
 }
 
-/* 玻璃拟态通用面板 */
 .glass-panel {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -115,7 +114,6 @@ button {
   color: #cbd5e1;
 }
 
-/* 游戏区域 */
 #gameWrap {
   display: none;
 }
@@ -136,7 +134,6 @@ canvas {
   justify-content: center;
 }
 
-/* 咨询按钮：默认显示，进入游戏隐藏 */
 .consult-btn {
   position: fixed;
   right: 20px;
@@ -204,6 +201,11 @@ async function activate() {
   const gameWrap = document.getElementById("gameWrap");
   const consultBtn = document.getElementById("consultBtn");
 
+  if (window.location.protocol === "content:" || window.location.protocol === "file:") {
+    msgBox.textContent = "⚠️禁止本地打开！请使用GitHub Pages https链接访问";
+    return;
+  }
+
   if (!key) {
     msgBox.textContent = "请输入卡密";
     return;
@@ -214,8 +216,9 @@ async function activate() {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
+      mode: "cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ app_id: APP_ID, key: key })
+      body: JSON.stringify({ appid: APP_ID, key: key })
     });
 
     const data = await res.json();
@@ -224,13 +227,14 @@ async function activate() {
       const remainDay = data.data.days;
       msgBox.textContent = "激活成功！剩余到期天数：" + remainDay + "天\n已进入高阶五子棋";
       gameWrap.style.display = "block";
-      consultBtn.style.display = "none"; // 进入五子棋页面，隐藏咨询按钮
+      consultBtn.style.display = "none";
       initGame();
     } else {
       msgBox.textContent = "激活失败：" + data.msg;
     }
   } catch (err) {
-    msgBox.textContent = "网络请求出错，请检查网络或使用本地打开。";
+    console.log(err);
+    msgBox.textContent = "请求异常：" + err.message;
   }
 }
 
@@ -259,14 +263,12 @@ function aiFirstMove() {
 
 function drawBoard() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   ctx.strokeStyle = "rgba(0, 0, 0, 0.75)";
   for (let i = 0; i < size; i++) {
     ctx.beginPath();
     ctx.moveTo(cell / 2 + i * cell, cell / 2);
     ctx.lineTo(cell / 2 + i * cell, cell * size - cell / 2);
     ctx.stroke();
-
     ctx.beginPath();
     ctx.moveTo(cell / 2, cell / 2 + i * cell);
     ctx.lineTo(cell * size - cell / 2, cell / 2 + i * cell);
@@ -277,18 +279,11 @@ function drawBoard() {
     for (let x = 0; x < size; x++) {
       let p = board[y][x];
       if (!p) continue;
-
       ctx.beginPath();
       ctx.arc(cell / 2 + x * cell, cell / 2 + y * cell, 12, 0, Math.PI * 2);
-
-      if (p === 1) {
-        ctx.fillStyle = "#0b1220";
-      } else {
-        ctx.fillStyle = "#f8fafc";
-      }
-
+      ctx.fillStyle = p === 1 ? "#0b1220" : "#f8fafc";
       ctx.fill();
-      ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
+      ctx.strokeStyle = "rgba(0,0,0,0.35)";
       ctx.stroke();
     }
   }
@@ -298,31 +293,24 @@ function clickBoard(e) {
   let rect = canvas.getBoundingClientRect();
   let scaleX = canvas.width / rect.width;
   let scaleY = canvas.height / rect.height;
-
   let x = Math.round((e.clientX - rect.left - cell / 2) * scaleX / cell);
   let y = Math.round((e.clientY - rect.top - cell / 2) * scaleY / cell);
-
   if (x < 0 || x >= size || y < 0 || y >= size || board[y][x]) return;
-
   board[y][x] = human;
   drawBoard();
-
   if (checkWin(human)) {
     alert("你赢了！");
     return;
   }
-
   aiTurn();
 }
 
 function aiTurn() {
   let best = null;
   let maxScore = -99999;
-
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       if (board[y][x]) continue;
-
       let s = evalPoint(x, y);
       if (s > maxScore) {
         maxScore = s;
@@ -330,76 +318,46 @@ function aiTurn() {
       }
     }
   }
-
   if (best) {
     board[best.y][best.x] = ai;
     drawBoard();
-
-    if (checkWin(ai)) {
-      alert("AI获胜！");
-    }
+    if (checkWin(ai)) alert("AI获胜！");
   }
 }
 
 function evalPoint(x, y) {
   board[y][x] = ai;
   let aiSc = calcAll(x, y, ai);
-
   board[y][x] = human;
   let huSc = calcAll(x, y, human);
-
   board[y][x] = 0;
-
   return aiSc * 1.4 + huSc;
 }
 
 function calcAll(px, py, player) {
   let dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
   let total = 0;
-
-  for (let [dx, dy] of dirs) {
-    total += countLine(px, py, dx, dy, player);
-  }
-
+  for (let [dx, dy] of dirs) total += countLine(px, py, dx, dy, player);
   return total;
 }
 
 function countLine(px, py, dx, dy, pl) {
   let cnt = 1;
   let r = 0;
-  let x = px + dx;
-  let y = py + dy;
-
+  let x = px + dx, y = py + dy;
   while (x >= 0 && x < size && y >= 0 && y < size && board[y][x] === pl) {
-    cnt++;
-    r++;
-    x += dx;
-    y += dy;
+    cnt++; r++; x += dx; y += dy;
   }
-
   let l = 0;
-  x = px - dx;
-  y = py - dy;
-
+  x = px - dx; y = py - dy;
   while (x >= 0 && x < size && y >= 0 && y < size && board[y][x] === pl) {
-    cnt++;
-    l++;
-    x -= dx;
-    y -= dy;
+    cnt++; l++; x -= dx; y -= dy;
   }
-
-  let leftOpen = (px - dx * l >= 0 && py - dy * l >= 0 && px - dx * l < size && py - dy * l < size)
-    ? board[py - dy * l][px - dx * l] === 0
-    : false;
-
-  let rightOpen = (px + dx * r >= 0 && py + dy * r >= 0 && px + dx * r < size && py + dy * r < size)
-    ? board[py + dy * r][px + dx * r] === 0
-    : false;
-
+  let leftOpen = (px - dx * l >= 0 && py - dy * l >= 0 && px - dx * l < size && py - dy * l < size) ? board[py - dy * l][px - dx * l] === 0 : false;
+  let rightOpen = (px + dx * r >= 0 && py + dy * r >= 0 && px + dx * r < size && py + dy * r < size) ? board[py + dy * r][px + dx * r] === 0 : false;
   let open = 0;
   if (leftOpen) open++;
   if (rightOpen) open++;
-
   if (cnt >= 5) return 100000;
   if (cnt === 4 && open >= 1) return 12000;
   if (cnt === 3 && open >= 2) return 2200;
@@ -418,9 +376,7 @@ function checkWin(p) {
         let c = 1;
         let nx = x + dx, ny = y + dy;
         while (nx >= 0 && nx < size && ny >= 0 && ny < size && board[ny][nx] === p) {
-          c++;
-          nx += dx;
-          ny += dy;
+          c++; nx += dx; ny += dy;
         }
         if (c >= 5) return true;
       }
